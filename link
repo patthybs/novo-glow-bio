@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glow Headspa & Beauty — Agende seu Ritual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --slate:    #2B4A54;
+    --slate-lt: #3D6270;
+    --teal:     #4A8B8C;
+    --teal-lt:  #C8E0E0;
+    --sand:     #D4A97A;
+    --sand-lt:  #F5EDE0;
+    --terra:    #A0522D;
+    --terra-lt: #FAECE7;
+    --cream:    #F7F3EE;
+    --white:    #FFFFFF;
+    --text:     #1C1C1C;
+    --muted:    #6B7280;
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans:  'DM Sans', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--sans); background: var(--cream); color: var(--text); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  img { display: block; max-width: 100%; }
+  a { text-decoration: none; color: inherit; }
+
+  .sticky-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    background: var(--slate); padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    transform: translateY(100%); transition: transform 0.4s ease;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.15);
+  }
+  .sticky-bar.visible { transform: translateY(0); }
+  .sticky-bar-text { font-size: 13px; color: rgba(255,255,255,0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sticky-bar-btn {
+    background: var(--sand); color: var(--slate); font-family: var(--sans);
+    font-size: 13px; font-weight: 500; padding: 10px 22px; border-radius: 50px;
+    border: none; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: all 0.2s;
+  }
+  .sticky-bar-btn:hover { background: #c49060; transform: scale(1.05); }
+
+  header {
+    background: var(--slate); padding: 18px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: relative; z-index: 10; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  .logo { font-family: var(--serif); font-size: 22px; font-weight: 400; color: var(--white); letter-spacing: 0.18em; }
+  .logo span { display: block; font-family: var(--sans); font-size: 9px; font-weight: 300; letter-spacing: 0.28em; color: var(--teal-lt); margin-top: 2px; }
+  .header-link { font-size: 12px; color: rgba(255,255,255,0.55); letter-spacing: 0.04em; transition: all 0.3s; }
+  .header-link:hover { color: var(--sand); transform: translateX(4px); }
+
+  .hero {
+    background: var(--slate); padding: 60px 24px 72px; text-align: center;
+    position: relative; overflow: hidden; min-height: 520px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+
+  .hero-bg-mobile {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    overflow: hidden; pointer-events: none; z-index: 0;
+    display: block;
+  }
+  .hero-bg-mobile iframe {
+    width: 177.77vw;
+    height: 100vh;
+    min-width: 100vw;
+    min-height: 56.25vw;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.8;
+    border: none;
+    pointer-events: none;
+    filter: brightness(0.6);
+  }
+
+  .hero-bg-desktop {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    overflow: hidden; pointer-events: none; z-index: 0;
+    display: none;
+  }
+  .hero-bg-desktop video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.8;
+    filter: brightness(0.6);
+  }
+
+  .hero-overlay {
+    position: absolute; inset: 0;
+    background: rgba(43, 74, 84, 0.5);
+    opacity: 1;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .hero-content { position: relative; z-index: 2; width: 100%; }
+  .hero::before { content: ''; position: absolute; top: -80px; right: -80px; width: 280px; height: 280px; border-radius: 50%; border: 1px solid rgba(200,224,224,0.1); pointer-events: none; z-index: 2; }
+  .hero::after  { content: ''; position: absolute; bottom: -50px; left: -50px; width: 200px; height: 200px; border-radius: 50%; border: 1px solid rgba(212,169,122,0.1); pointer-events: none; z-index: 2; }
+  .hero-eyebrow { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--teal-lt); margin-bottom: 20px; opacity: 0; animation: fadeUp 0.7s 0.1s forwards; }
+  .hero-title { font-family: var(--serif); font-size: clamp(38px, 9vw, 56px); font-weight: 300; color: var(--white); line-height: 1.12; margin-bottom: 20px; opacity: 0; animation: fadeUp 0.7s 0.2s forwards; }
+  .hero-title em { font-style: italic; color: var(--sand); }
+  .hero-sub { font-size: 15px; font-weight: 300; color: rgba(255,255,255,0.8); max-width: 360px; margin: 0 auto 36px; line-height: 1.7; opacity: 0; animation: fadeUp 0.7s 0.3s forwards; }
+  .hero-cta {
+    display: inline-block; background: var(--sand); color: var(--slate);
+    font-family: var(--sans); font-size: 15px; font-weight: 500;
+    padding: 17px 40px; border-radius: 50px; letter-spacing: 0.02em;
+    transition: all 0.3s; opacity: 0; animation: fadeUp 0.7s 0.4s forwards;
+    box-shadow: 0 8px 20px rgba(212, 169, 122, 0.25);
+  }
+  .hero-cta:hover { background: #c49060; transform: translateY(-3px); box-shadow: 0 12px 28px rgba(212, 169, 122, 0.35); }
+  .hero-note { margin-top: 14px; font-size: 12px; color: rgba(255,255,255,0.5); opacity: 0; animation: fadeUp 0.7s 0.5s forwards; }
+
+  .trust-bar {
+    background: var(--sand-lt); padding: 20px 24px;
+    display: flex; align-items: center; justify-content: center; gap: 24px; flex-wrap: wrap;
+    border-bottom: 1px solid rgba(212,169,122,0.25);
+  }
+  .trust-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--slate); font-weight: 500; }
+  .trust-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); flex-shrink: 0; box-shadow: 0 0 12px rgba(74, 139, 140, 0.4); }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+
+  section { padding: 60px 24px; }
+  .section-label { font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--teal); margin-bottom: 10px; font-weight: 500; }
+  .section-title { font-family: var(--serif); font-size: clamp(30px, 7vw, 40px); font-weight: 300; color: var(--slate); line-height: 1.18; margin-bottom: 14px; }
+  .section-title em { font-style: italic; color: var(--terra); }
+  .section-body { font-size: 15px; color: var(--muted); line-height: 1.75; max-width: 500px; }
+
+  .services { background: var(--white); }
+  .services-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 40px; align-items: stretch; }
+  .service-card {
+    border: 1px solid rgba(43,74,84,0.1); border-radius: 20px; overflow: hidden;
+    background: var(--cream); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex; flex-direction: column; height: 100%;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+    position: relative;
+  }
+  .service-card:hover { 
+    transform: translateY(-8px); 
+    box-shadow: 0 16px 40px rgba(43,74,84,0.12);
+    border-color: rgba(43,74,84,0.2);
+  }
+  .service-card.featured { background: var(--slate); border-color: var(--slate); }
+  .service-image {
+    width: 100%; height: 240px; object-fit: cover; overflow: hidden;
+    background: linear-gradient(135deg, var(--teal-lt), var(--sand-lt));
+    position: relative;
+  }
+  .service-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+  .service-card:hover .service-image img { transform: scale(1.08); }
+  .service-content { padding: 26px; flex-grow: 1; display: flex; flex-direction: column; }
+  .service-tag { display: inline-block; font-size: 10px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; padding: 6px 14px; border-radius: 50px; margin-bottom: 14px; }
+  .tag-teal { background: var(--teal-lt); color: var(--slate); }
+  .tag-terra { background: var(--terra-lt); color: var(--terra); }
+  .tag-sand { background: var(--sand-lt); color: #7A5C3A; }
+  .tag-white { background: rgba(255,255,255,0.14); color: var(--teal-lt); }
+  .service-name { font-family: var(--serif); font-size: 23px; font-weight: 400; color: var(--slate); margin-bottom: 8px; line-height: 1.2; }
+  .featured .service-name { color: var(--white); }
+  .service-desc { font-size: 13px; color: var(--muted); line-height: 1.65; margin-bottom: 16px; }
+  .featured .service-desc { color: rgba(255,255,255,0.6); }
+  .service-features { list-style: none; margin-bottom: 18px; }
+  .service-features li { font-size: 13px; color: var(--muted); padding: 5px 0; display: flex; align-items: flex-start; gap: 8px; border-bottom: 1px solid rgba(43,74,84,0.05); }
+  .service-features li:last-child { border-bottom: none; }
+  .featured .service-features li { color: rgba(255,255,255,0.65); border-bottom-color: rgba(255,255,255,0.07); }
+  .service-features li::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--teal); flex-shrink: 0; margin-top: 6px; }
+  .featured .service-features li::before { background: var(--sand); }
+  .service-btn {
+    display: block; text-align: center; padding: 13px; border-radius: 50px;
+    font-size: 13px; font-weight: 500; transition: all 0.2s; cursor: pointer; border: none; width: 100%;
+    margin-top: auto;
+  }
+  .btn-dark { background: var(--slate); color: var(--white); }
+  .btn-dark:hover { background: var(--slate-lt); transform: translateY(-2px); }
+  .btn-sand { background: var(--sand); color: var(--slate); }
+  .btn-sand:hover { background: #c49060; transform: translateY(-2px); }
+
+  .sub-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+  .sub-card { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 12px; transition: all 0.2s; }
+  .sub-card:hover { background: rgba(255,255,255,0.12); transform: translateY(-2px); }
+  .sub-card-name { font-size: 12px; font-weight: 500; color: var(--white); margin-bottom: 2px; }
+  .sub-card-price { font-size: 11px; color: var(--sand); }
+
+  .sub-cards-light { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 18px; }
+  .sub-card-light { background: rgba(43,74,84,0.05); border: 1px solid rgba(43,74,84,0.08); border-radius: 10px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
+  .sub-card-light:hover { background: rgba(43,74,84,0.08); transform: translateX(4px); }
+  .sub-card-light-name { font-size: 12px; font-weight: 500; color: var(--slate); }
+  .sub-card-light-price { font-size: 12px; color: var(--teal); font-weight: 500; }
+
+  .gallery-section { background: var(--cream); padding: 80px 24px; }
+  .gallery-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 40px; }
+  .gallery-item {
+    border-radius: 16px; overflow: hidden; height: 300px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    position: relative; cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .gallery-item:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.12); }
+  .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+  .gallery-item:hover img { transform: scale(1.06); }
+  .gallery-overlay {
+    position: absolute; inset: 0; background: rgba(43,74,84,0.7);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.3s ease;
+  }
+  .gallery-item:hover .gallery-overlay { opacity: 1; }
+  .gallery-text { color: var(--white); text-align: center; }
+  .gallery-text h3 { font-family: var(--serif); font-size: 24px; color: var(--sand); margin-bottom: 6px; }
+  .gallery-text p { font-size: 13px; color: rgba(255,255,255,0.8); }
+
+  .courses { background: var(--cream); }
+  .course-cards { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 40px; }
+  .course-card { border-radius: 18px; overflow: hidden; border: 1px solid rgba(43,74,84,0.1); background: var(--white); transition: all 0.3s; box-shadow: 0 4px 16px rgba(0,0,0,0.05); position: relative; }
+  .course-card:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(43,74,84,0.12); }
+  
+  .course-media {
+    width: 100%; height: 280px; background: linear-gradient(135deg, var(--teal-lt), var(--sand-lt));
+    overflow: hidden; position: relative;
+  }
+  .course-media video {
+    width: 100%; height: 100%; object-fit: cover; opacity: 0.8;
+  }
+  
+  .course-header { padding: 22px 24px 16px; border-bottom: 1px solid rgba(43,74,84,0.06); }
+  .course-type { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 500; margin-bottom: 10px; }
+  .course-type.online { color: var(--teal); }
+  .course-type.presencial { color: var(--terra); }
+  .course-title { font-family: var(--serif); font-size: 21px; font-weight: 400; color: var(--slate); line-height: 1.25; margin-bottom: 6px; }
+  .course-sub { font-size: 13px; color: var(--muted); }
+  .course-badge { display: inline-block; padding: 3px 10px; border-radius: 50px; font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; margin-left: 8px; vertical-align: middle; }
+  .badge-online { background: var(--teal-lt); color: var(--slate); }
+  .badge-presencial { background: var(--terra-lt); color: var(--terra); }
+  .course-body { padding: 16px 24px 22px; }
+  .course-modules { list-style: none; margin-bottom: 20px; }
+  .course-modules li { font-size: 13px; color: var(--muted); padding: 6px 0; display: flex; gap: 8px; align-items: flex-start; border-bottom: 1px solid rgba(43,74,84,0.05); }
+  .course-modules li:last-child { border-bottom: none; }
+  .course-modules li::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--teal); flex-shrink: 0; margin-top: 7px; }
+  .course-footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .course-price { font-size: 13px; color: var(--muted); }
+  .course-price strong { display: block; font-size: 18px; color: var(--slate); font-weight: 500; margin-top: 2px; }
+  .course-btn { padding: 12px 24px; border-radius: 50px; font-size: 13px; font-weight: 500; border: none; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+  .cbtn-online { background: var(--teal); color: var(--white); }
+  .cbtn-online:hover { background: #3a7273; transform: translateY(-2px); }
+  .cbtn-presencial { background: var(--terra); color: var(--white); }
+  .cbtn-presencial:hover { background: #8B4423; transform: translateY(-2px); }
+
+  .ritual { background: var(--slate); }
+  .ritual .section-label { color: var(--teal-lt); }
+  .ritual .section-title { color: var(--white); }
+  .ritual .section-body { color: rgba(255,255,255,0.55); }
+  .steps { display: flex; flex-direction: column; gap: 0; margin-top: 36px; position: relative; }
+  .steps::before { content: ''; position: absolute; left: 19px; top: 20px; bottom: 20px; width: 1px; background: rgba(200,224,224,0.15); }
+  .step { display: flex; gap: 18px; padding-bottom: 30px; opacity: 0; animation: fadeUp 0.7s ease forwards; }
+  .step:nth-child(1) { animation-delay: 0.1s; }
+  .step:nth-child(2) { animation-delay: 0.2s; }
+  .step:nth-child(3) { animation-delay: 0.3s; }
+  .step:last-child { padding-bottom: 0; }
+  .step-num { width: 40px; height: 40px; border-radius: 50%; background: rgba(200,224,224,0.1); border: 1px solid rgba(200,224,224,0.22); display: flex; align-items: center; justify-content: center; font-family: var(--serif); font-size: 16px; color: var(--teal-lt); flex-shrink: 0; transition: all 0.3s; }
+  .step:hover .step-num { background: rgba(200,224,224,0.2); transform: scale(1.1); }
+  .step-content { padding-top: 8px; }
+  .step-title { font-family: var(--serif); font-size: 18px; font-weight: 400; color: var(--white); margin-bottom: 4px; }
+  .step-desc { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.65; }
+
+  .testimonials { background: var(--sand-lt); }
+  .testimonials .section-label { color: var(--terra); }
+  
+  .testi-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 30px;
+  }
+
+  .testi-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid rgba(212,169,122,0.18);
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .testi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(212,169,122,0.2);
+  }
+
+  .testi-stars {
+    color: var(--sand);
+    font-size: 12px;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+
+  .testi-quote {
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--slate);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .testi-author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .testi-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--teal), var(--sand));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--white);
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(74, 139, 140, 0.3);
+  }
+
+  .testi-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--slate);
+  }
+
+  .testi-role {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .google-reviews-title {
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--terra);
+    margin-bottom: 20px;
+    margin-top: 40px;
+    font-weight: 500;
+  }
+
+  .google-reviews-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-top: 30px;
+  }
+
+  .google-review-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid rgba(212,169,122,0.18);
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .google-review-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(212,169,122,0.2);
+  }
+
+  .google-stars {
+    color: var(--sand);
+    font-size: 12px;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+
+  .google-quote {
+    font-family: var(--serif);
+    font-size: 15px;
+    font-weight: 300;
+    color: var(--slate);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .google-author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .google-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--terra), var(--sand));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--white);
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(160, 82, 45, 0.3);
+  }
+
+  .google-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--slate);
+  }
+
+  .final-cta { background: var(--cream); text-align: center; padding: 80px 24px; }
+  .final-cta .section-title { margin-bottom: 12px; }
+  .final-cta .section-body { margin: 0 auto 40px; text-align: center; }
+  .cta-group { display: flex; flex-direction: column; gap: 14px; align-items: center; }
+  .cta-primary { display: inline-block; background: var(--slate); color: var(--white); font-size: 15px; font-weight: 500; padding: 18px 44px; border-radius: 50px; transition: all 0.3s; width: 100%; max-width: 320px; text-align: center; box-shadow: 0 8px 20px rgba(43,74,84,0.2); }
+  .cta-primary:hover { background: var(--slate-lt); transform: translateY(-3px); box-shadow: 0 12px 28px rgba(43,74,84,0.3); }
+  .cta-secondary { display: inline-block; background: transparent; color: var(--slate); font-size: 14px; padding: 14px 38px; border-radius: 50px; border: 2px solid rgba(43,74,84,0.28); transition: all 0.3s; width: 100%; max-width: 320px; text-align: center; }
+  .cta-secondary:hover { background: rgba(43,74,84,0.05); border-color: var(--slate); transform: translateY(-2px); }
+  .cta-wpp { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; font-size: 13px; color: var(--teal); font-weight: 500; transition: all 0.3s; }
+  .cta-wpp:hover { color: var(--slate); transform: translateX(4px); }
+  .cta-wpp svg { width: 16px; height: 16px; fill: currentColor; }
+
+  footer { background: var(--slate); padding: 40px 24px 100px; text-align: center; }
+  .footer-logo { font-family: var(--serif); font-size: 20px; font-weight: 300; color: var(--white); letter-spacing: 0.18em; margin-bottom: 4px; }
+  .footer-sub { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 22px; }
+  .footer-social { display: flex; justify-content: center; gap: 12px; margin-bottom: 22px; }
+  .social-btn { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.14); color: rgba(255,255,255,0.45); font-size: 11px; font-weight: 500; transition: all 0.2s; }
+  .social-btn:hover { border-color: var(--teal-lt); color: var(--teal-lt); background: rgba(200,224,224,0.1); }
+  .footer-links { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 22px; }
+  .footer-links a { font-size: 12px; color: rgba(255,255,255,0.4); transition: color 0.2s; }
+  .footer-links a:hover { color: var(--teal-lt); }
+  .footer-copy { font-size: 11px; color: rgba(255,255,255,0.2); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 959px) {
+    .hero-bg-mobile { display: block; }
+    .hero-bg-desktop { display: none; }
+  }
+
+  @media (min-width: 640px) {
+    .services-grid { grid-template-columns: 1fr 1fr; }
+    .gallery-grid { grid-template-columns: 1fr 1fr; }
+    .course-cards  { grid-template-columns: 1fr 1fr; }
+    .testi-grid    { flex-direction: row; }
+    .testi-grid .testi-card { flex: 1; }
+    .google-reviews-grid { grid-template-columns: 1fr 1fr; }
+    .google-reviews-grid .google-review-card:nth-child(3) { grid-column: 1 / -1; max-width: 50%; margin: 0 auto; }
+    .hero { padding: 88px 48px 104px; }
+    section { padding: 80px 48px; }
+    .cta-group { flex-direction: row; justify-content: center; }
+    .cta-primary, .cta-secondary { width: auto; }
+    .sub-cards { grid-template-columns: repeat(2, 1fr); }
+    .sub-cards-light { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (min-width: 960px) {
+    .hero-bg-mobile { display: none; }
+    .hero-bg-desktop { display: block; }
+    .services-grid { grid-template-columns: repeat(4, 1fr); }
+    .gallery-grid { grid-template-columns: repeat(3, 1fr); }
+    .testi-grid { max-width: 100%; }
+    .google-reviews-grid { grid-template-columns: repeat(3, 1fr); }
+    .google-reviews-grid .google-review-card:nth-child(3) { grid-column: auto; max-width: 100%; }
+    section { padding: 80px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">GLOW<span>HEADSPA & BEAUTY</span></div>
+  <a href="https://www.glowheadspa.com.br" class="header-link">ver site completo →</a>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-mobile">
+    <iframe
+      src="https://www.youtube.com/embed/I0iJJAw44Uc?autoplay=1&mute=1&controls=0&loop=1&playlist=I0iJJAw44Uc&modestbranding=1&showinfo=0&iv_load_policy=3&fs=0&rel=0"
+      frameborder="0"
+      allow="autoplay; encrypted-media"
+      allowfullscreen="false"
+      tabindex="-1"
+    ></iframe>
+  </div>
+
+  <div class="hero-bg-desktop">
+    <video autoplay muted loop playsinline>
+      <source src="https://cdn.shopify.com/videos/c/o/v/dbef8341fb944066a2cf0fe0c47ea47e.mov" type="video/mp4">
+    </video>
+  </div>
+
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Técnica Coreana · São Paulo</p>
+    <h1 class="hero-title">Seu couro cabeludo<br>merece um <em>ritual</em>.</h1>
+    <p class="hero-sub">Da sessão de headspa ao treinamento profissional — encontre o cuidado certo para você.</p>
+    <a href="#servicos" class="hero-cta">Agendar meu ritual</a>
+    <p class="hero-note">Sem cadastro · Escolha o horário direto</p>
+  </div>
+</section>
+
+<!-- TRUST BAR -->
+<div class="trust-bar">
+  <div class="trust-item"><div class="trust-dot"></div>Técnica coreana original</div>
+  <div class="trust-item"><div class="trust-dot"></div>Diagnóstico capilar incluso</div>
+  <div class="trust-item"><div class="trust-dot"></div>Formação para profissionais</div>
+</div>
+
+<!-- SERVICES -->
+<section class="services" id="servicos">
+  <div class="container">
+    <p class="section-label reveal">Nossos rituais</p>
+    <h2 class="section-title reveal">Escolha sua<br><em>experiência</em></h2>
+    <p class="section-body reveal">Cada atendimento começa com escuta. Porque nenhum couro cabeludo é igual — e nenhuma sessão deveria ser.</p>
+
+    <div class="services-grid">
+      <div class="service-card featured reveal">
+        <div class="service-image">
+          <img src="https://cdn.shopify.com/s/files/1/0662/8828/7922/files/656670275_18084981167601424_938793216307680056_n.jpg?v=1774747068" alt="Headspa Coreano">
+        </div>
+        <div class="service-content">
+          <span class="service-tag tag-white">Mais procurado</span>
+          <div class="service-name">Headspa Coreano</div>
+          <p class="service-desc">Ritual completo de limpeza profunda e relaxamento terapêutico. A experiência que deu origem à Glow.</p>
+          <div class="sub-cards">
+            <div class="sub-card"><div class="sub-card-name">Hair Day</div><div class="sub-card-price">R$ 196</div></div>
+            <div class="sub-card"><div class="sub-card-name">The Hair Dream</div><div class="sub-card-price">A partir de R$ 290</div></div>
+            <div class="sub-card"><div class="sub-card-name">Glory Detox</div><div class="sub-card-price">A partir de R$ 350</div></div>
+            <div class="sub-card"><div class="sub-card-name">Luxury Revive</div><div class="sub-card-price">A partir de R$ 450</div></div>
+          </div>
+          <a href="https://www.glowheadspa.com.br/collections/hair-therapy" class="service-btn btn-sand">Ver e agendar</a>
+        </div>
+      </div>
+
+      <div class="service-card reveal">
+        <div class="service-image">
+          <img src="https://cdn.shopify.com/s/files/1/0662/8828/7922/files/terapia-capilar-eletroterapia-alta-frequencia.webp?v=1723406748" alt="Tricologia">
+        </div>
+        <div class="service-content">
+          <span class="service-tag tag-teal">Saúde capilar</span>
+          <div class="service-name">Tricologia & Tratamentos</div>
+          <p class="service-desc">Avaliação científica do couro cabeludo para queda, oleosidade, ressecamento e alopecia.</p>
+          <div class="sub-cards-light">
+            <div class="sub-card-light"><span class="sub-card-light-name">Queda Capilar</span><span class="sub-card-light-price">R$ 400</span></div>
+            <div class="sub-card-light"><span class="sub-card-light-name">Alopecia Feminina</span><span class="sub-card-light-price">R$ 500</span></div>
+            <div class="sub-card-light"><span class="sub-card-light-name">Alopecia Masculina</span><span class="sub-card-light-price">R$ 500</span></div>
+          </div>
+          <a href="https://www.glowheadspa.com.br/collections/tratamento-do-couro-cabeludo-e-tricologia" class="service-btn btn-dark">Ver e agendar</a>
+        </div>
+      </div>
+
+      <div class="service-card reveal">
+        <div class="service-image">
+          <img src="https://cdn.shopify.com/s/files/1/0662/8828/7922/files/IMG_5951.jpg?v=1733506551" alt="Skincare">
+        </div>
+        <div class="service-content">
+          <span class="service-tag tag-sand">Pele & beleza</span>
+          <div class="service-name">Skincare Ritual</div>
+          <p class="service-desc">Tratamentos faciais com protocolos de beleza coreana. Recupere a luminosidade e o equilíbrio da sua pele.</p>
+          <div class="sub-cards-light">
+            <div class="sub-card-light"><span class="sub-card-light-name">Fresh Luxury Facial</span><span class="sub-card-light-price">R$ 240</span></div>
+            <div class="sub-card-light"><span class="sub-card-light-name">Glow Luxury Facial</span><span class="sub-card-light-price">R$ 240</span></div>
+            <div class="sub-card-light"><span class="sub-card-light-name">Lifting Facial Somático</span><span class="sub-card-light-price">R$ 340</span></div>
+          </div>
+          <a href="https://www.glowheadspa.com.br/collections/facials" class="service-btn btn-dark">Ver e agendar</a>
+        </div>
+      </div>
+
+      <div class="service-card reveal">
+        <div class="service-image">
+          <img src="https://cdn.shopify.com/s/files/1/0662/8828/7922/files/IMG_1348.jpg?v=1725804718" alt="Pacotes">
+        </div>
+        <div class="service-content">
+          <span class="service-tag tag-terra">Pacote completo</span>
+          <div class="service-name">Pacotes & Gift Cards</div>
+          <p class="service-desc">Combine headspa + skincare em pacotes mensais com frequência e desconto.</p>
+          <ul class="service-features">
+            <li>Headspa + skincare combinados</li>
+            <li>Desconto em pacotes mensais</li>
+            <li>Gift cards para presentear</li>
+            <li>Atendimento coreano completo</li>
+          </ul>
+          <a href="https://www.glowheadspa.com.br/collections/headspa-facials" class="service-btn btn-dark">Ver pacotes</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section class="gallery-section">
+  <div class="container">
+    <p class="section-label reveal">Galeria de Rituais</p>
+    <h2 class="section-title reveal">Momentos de <em>transformação</em></h2>
+    
+    <div class="gallery-grid">
+      <div class="gallery-item reveal">
+        <img src="https://cdn.shopify.com/s/files/1/0662/8828/7922/files/IMG_1529.jpg?v=1726244518" alt="Headspa Experience">
+        <div class="gallery-overlay"><div class="gallery-text"><h3>Headspa Ritual</h3><p>Relaxamento puro</p></div></div>
+      </div>
+      <div class="gallery-item reveal">
+        <img src="https://cdn.shopify.com/s/files/1/0662/8828/7922/files/IMG_4287.jpg?v=1724971018" alt="Premium">
+        <div class="gallery-overlay"><div class="gallery-text"><h3>Experiência Premium</h3><p>Técnica coreana original</p></div></div>
+      </div>
+      <div class="gallery-item reveal">
+        <img src="https://cdn.shopify.com/s/files/1/0662/8828/7922/files/IMG_1507.jpg?v=1728077645" alt="Skincare">
+        <div class="gallery-overlay"><div class="gallery-text"><h3>Pele Radiante</h3><p>Skincare transformador</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COURSES -->
+<section class="courses" id="cursos">
+  <div class="container">
+    <p class="section-label reveal">Para profissionais</p>
+    <h2 class="section-title reveal">Aprenda a <em>técnica</em><br>que transforma carreiras</h2>
+    <div style="margin-top: 32px; margin-bottom: 28px;" class="reveal">
+      <p style="font-size: 15px; color: var(--muted); line-height: 1.75;">A Glow forma profissionais de estética, bem-estar e terapias manuais na técnica original de HeadSpa Coreano. Base científica, princípios da medicina oriental e protocolo estruturado — para você oferecer um serviço diferenciado e de resultado real.</p>
+    </div>
+
+    <div class="course-cards">
+      <div class="course-card reveal">
+        <div class="course-media">
+          <video autoplay muted loop playsinline>
+            <source src="https://cdn.shopify.com/videos/c/o/v/838ca681b72b44a4b0f3ad42f5772e0a.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="course-header">
+          <div class="course-type online">Online · No seu ritmo</div>
+          <div class="course-title">Headspa Coreano para Relaxamento <span class="course-badge badge-online">Online</span></div>
+          <div class="course-sub">Treinamento completo com base técnica e científica</div>
+        </div>
+        <div class="course-body">
+          <ul class="course-modules">
+            <li>Introdução ao HeadSpa Coreano</li>
+            <li>Princípios da Medicina Oriental</li>
+            <li>Pontos específicos para relaxamento</li>
+            <li>Regulação do sistema nervoso</li>
+            <li>Anatomia funcional aplicada</li>
+            <li>Técnica manual da massagem</li>
+            <li>Estrutura de atendimento profissional</li>
+          </ul>
+          <div class="course-footer">
+            <div class="course-price">Investimento<strong>R$ 1.800</strong></div>
+            <a href="https://www.glowheadspa.com.br/products/treinamento-headspa-coreano-para-relaxamento" class="course-btn cbtn-online">Quero me inscrever</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="course-card reveal">
+        <div class="course-media">
+          <video autoplay muted loop playsinline>
+            <source src="https://cdn.shopify.com/videos/c/o/v/16475e7691594816977bc86f162f69c5.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="course-header">
+          <div class="course-type presencial">Presencial · São Paulo</div>
+          <div class="course-title">Headspa Coreano para Relaxamento <span class="course-badge badge-presencial">Presencial</span></div>
+          <div class="course-sub">Imersão prática com acompanhamento ao vivo</div>
+        </div>
+        <div class="course-body">
+          <ul class="course-modules">
+            <li>Mesma grade completa do curso online</li>
+            <li>Prática supervisionada com modelo real</li>
+            <li>Correção de postura e movimentos</li>
+            <li>Feedback em tempo real</li>
+            <li>Certificado de conclusão</li>
+            <li>Material de apoio incluso</li>
+            <li>Acesso à comunidade Glow</li>
+          </ul>
+          <div class="course-footer">
+            <div class="course-price">Investimento<strong>Consulte datas</strong></div>
+            <a href="https://www.glowheadspa.com.br/pages/curso-headspa-aprenda-conosco" class="course-btn cbtn-presencial">Ver datas</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px; text-align:center;" class="reveal">
+      <p style="font-size:13px; color:var(--muted); margin-bottom:14px;">Dúvidas sobre qual formato escolher?</p>
+      <a href="https://wa.me/5511988872554?text=Olá!+Tenho+interesse+nos+cursos+da+Glow+Headspa." class="service-btn btn-dark" style="display:inline-block; max-width:260px; padding:13px 32px;">Falar pelo WhatsApp</a>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="ritual" id="como-funciona">
+  <div class="container">
+    <p class="section-label reveal">Como funciona</p>
+    <h2 class="section-title reveal">Do Instagram ao <em>relaxamento</em><br>em 3 passos</h2>
+
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Escolha seu ritual</div>
+          <div class="step-desc">Headspa, skincare, diagnóstico capilar ou pacote completo. Em dúvida? Nos chame no WhatsApp antes de agendar.</div>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Reserve seu horário</div>
+          <div class="step-desc">Escolha o dia e horário que funcionam para você, direto na plataforma. Confirmação imediata por e-mail.</div>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Apareça e entregue-se</div>
+          <div class="step-desc">Chegue, faça seu diagnóstico e deixe a técnica coreana cuidar do resto. Você sai transformada.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <div class="container">
+    <p class="section-label reveal">O que dizem</p>
+    <h2 class="section-title reveal">Experiências <em>reais</em></h2>
+    
+    <div class="testi-grid">
+      <div class="testi-card reveal">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-quote">"Experiência incrível! Saí completamente relaxada com o couro cabeludo muito mais limpo."</p>
+        <div class="testi-author"><div class="testi-avatar">JB</div><div><div class="testi-name">Juliana B.</div><div class="testi-role">Headspa Coreano</div></div></div>
+      </div>
+      <div class="testi-card reveal">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-quote">"Adorei! Profissional atenciosa e ambiente aconchegante. Voltarei com certeza!"</p>
+        <div class="testi-author"><div class="testi-avatar">MC</div><div><div class="testi-name">Mariana C.</div><div class="testi-role">Skincare Ritual</div></div></div>
+      </div>
+      <div class="testi-card reveal">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-quote">"Pele muito mais luminosa! Recomendo para todas. Voltei 3 vezes!"</p>
+        <div class="testi-author"><div class="testi-avatar">AF</div><div><div class="testi-name">Amanda F.</div><div class="testi-role">Facial Treatment</div></div></div>
+      </div>
+    </div>
+
+    <p class="google-reviews-title reveal">Avaliações do Google</p>
+    <div class="google-reviews-grid">
+      <div class="google-review-card reveal">
+        <div class="google-stars">★★★★★</div>
+        <p class="google-quote">"Melhor experiência de headspa que já tive! Recomendo demais!"</p>
+        <div class="google-author"><div class="google-avatar">RN</div><div><div class="google-name">Rafaela N.</div></div></div>
+      </div>
+      <div class="google-review-card reveal">
+        <div class="google-stars">★★★★★</div>
+        <p class="google-quote">"Profissionalismo de primeira qualidade. Muito bom mesmo!"</p>
+        <div class="google-author"><div class="google-avatar">TS</div><div><div class="google-name">Tania S.</div></div></div>
+      </div>
+      <div class="google-review-card reveal">
+        <div class="google-stars">★★★★★</div>
+        <p class="google-quote">"Voltei várias vezes! Vicia mesmo, sensação de bem-estar garantida."</p>
+        <div class="google-author"><div class="google-avatar">CF</div><div><div class="google-name">Camila F.</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta">
+  <div class="container">
+    <p class="section-label reveal" style="text-align:center;">Pronto para começar?</p>
+    <h2 class="section-title reveal">O seu ritual<br>te espera.</h2>
+    <p class="section-body reveal" style="margin-left: auto; margin-right: auto;">Seja para cuidar de si ou crescer profissionalmente — a Glow tem o caminho certo para você.</p>
+    <div class="cta-group reveal">
+      <a href="https://www.glowheadspa.com.br/collections/hair-therapy" class="cta-primary">Agendar minha sessão</a>
+      <a href="https://www.glowheadspa.com.br/pages/curso-headspa-aprenda-conosco" class="cta-secondary">Ver formação profissional</a>
+    </div>
+    <div style="margin-top:16px;" class="reveal">
+      <a href="https://wa.me/5511988872554?text=Olá!+Vim+pelo+Instagram+e+quero+saber+mais+sobre+a+Glow+Headspa." class="cta-wpp">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Falar pelo WhatsApp
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">GLOW</div>
+  <div class="footer-sub">Headspa & Beauty · São Paulo</div>
+  <div class="footer-social">
+    <a href="https://www.instagram.com/glow.headspa/" class="social-btn">IG</a>
+    <a href="https://www.tiktok.com/@glowheadspa" class="social-btn">TK</a>
+    <a href="https://www.youtube.com/channel/UCKOgfEE110_SupP_NUihfrA" class="social-btn">YT</a>
+  </div>
+  <div class="footer-links">
+    <a href="https://www.glowheadspa.com.br">Site completo</a>
+    <a href="https://www.glowheadspa.com.br/pages/quem-somos">Quem somos</a>
+    <a href="https://www.glowheadspa.com.br/collections/gift-cards">Gift Cards</a>
+    <a href="https://www.glowheadspa.com.br/pages/contato">Contato</a>
+    <a href="https://www.glowheadspa.com.br/policies/privacy-policy">Privacidade</a>
+  </div>
+  <div class="footer-copy">© 2025 Glow Headspa & Beauty · Todos os direitos reservados</div>
+</footer>
+
+<!-- STICKY BAR -->
+<div class="sticky-bar" id="stickyBar">
+  <span class="
